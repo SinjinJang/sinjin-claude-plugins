@@ -1,0 +1,8 @@
+{
+  "name": "claude-live-mirror",
+  "version": "0.1.0",
+  "description": "node-pty + WebSocket 양방향 터미널 미러링으로 웹에서 리뷰하고 인라인 코멘트를 작성하는 플러그인",
+  "author": { "name": "sjjang" },
+  "keywords": ["review", "web", "terminal", "viewer", "comment"],
+  "commands": "./commands"
+}

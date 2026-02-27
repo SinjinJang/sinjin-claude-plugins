@@ -1,0 +1,13 @@
+{
+  "name": "claude-live-mirror",
+  "version": "0.1.0",
+  "private": true,
+  "description": "node-pty + WebSocket bidirectional terminal mirroring for Claude Code",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "node-pty": "^1.0.0",
+    "ws": "^8.18.0"
+  }
+}

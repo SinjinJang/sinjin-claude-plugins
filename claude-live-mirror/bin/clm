@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# clm (claude live mirror) - Runs claude in a PTY + WebSocket server for web mirroring.
+# Usage: clm [claude-args...]
+# Example: clm --model sonnet
+#          clm -y              (→ --allow-dangerously-skip-permissions)
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PLUGIN_DIR="$(dirname "$SCRIPT_DIR")"
+SERVER_JS="$PLUGIN_DIR/scripts/live-mirror-server.js"
+
+# Auto-install dependencies if needed
+if [ ! -d "$PLUGIN_DIR/node_modules" ]; then
+  echo "Installing dependencies..." >&2
+  (cd "$PLUGIN_DIR" && npm install) >&2
+fi
+
+exec node "$SERVER_JS" "$@"

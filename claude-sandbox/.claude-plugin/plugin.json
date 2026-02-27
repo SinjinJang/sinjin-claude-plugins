@@ -1,0 +1,9 @@
+{
+  "name": "claude-sandbox",
+  "version": "0.1.0",
+  "description": "Docker 컨테이너에서 Claude Code를 격리 실행하여 안전한 자율 작업 수행",
+  "author": {
+    "name": "sjjang"
+  },
+  "keywords": ["docker", "sandbox", "container", "isolation"]
+}

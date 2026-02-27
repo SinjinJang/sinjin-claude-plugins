@@ -1,0 +1,9 @@
+{
+  "name": "agora-debate",
+  "version": "0.2.0",
+  "description": "고대 그리스 아고라에서 영감을 받은 다중 서브에이전트 토론 시뮬레이션 플러그인 — 각 토론자가 독립된 컨텍스트에서 리서치하고 의견을 형성합니다",
+  "author": {
+    "name": "sjjang"
+  },
+  "keywords": ["debate", "simulation", "multi-agent", "discussion", "agora"]
+}

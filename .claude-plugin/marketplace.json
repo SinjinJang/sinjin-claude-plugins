@@ -1,0 +1,44 @@
+{
+  "name": "cc-plugins",
+  "owner": {
+    "name": "sjjang"
+  },
+  "metadata": {
+    "description": "Claude Code 플러그인 모음 - 토론 시뮬레이션, 터미널 미러링, 샌드박스 실행"
+  },
+  "plugins": [
+    {
+      "name": "agora-debate",
+      "source": "./agora-debate",
+      "description": "고대 그리스 아고라에서 영감을 받은 다중 에이전트 토론 시뮬레이션 플러그인",
+      "version": "0.1.0",
+      "author": {
+        "name": "sjjang"
+      },
+      "keywords": ["debate", "simulation", "multi-agent", "discussion", "agora"],
+      "category": "productivity"
+    },
+    {
+      "name": "claude-sandbox",
+      "source": "./claude-sandbox",
+      "description": "Docker 컨테이너에서 Claude Code를 격리 실행하여 안전한 자율 작업 수행",
+      "version": "0.1.0",
+      "author": {
+        "name": "sjjang"
+      },
+      "keywords": ["docker", "sandbox", "container", "isolation"],
+      "category": "devops"
+    },
+    {
+      "name": "claude-live-mirror",
+      "source": "./claude-live-mirror",
+      "description": "node-pty + WebSocket 양방향 터미널 미러링으로 웹에서 리뷰하고 인라인 코멘트를 작성하는 플러그인",
+      "version": "0.1.0",
+      "author": {
+        "name": "sjjang"
+      },
+      "keywords": ["review", "web", "terminal", "viewer", "comment"],
+      "category": "productivity"
+    }
+  ]
+}
