@@ -637,7 +637,15 @@
     const parts = [];
     for (const c of comments) {
       const lines = c.selectedText ? c.selectedText.split('\n').filter(l => l.trim()) : [];
-      const firstLine = lines.length > 0 ? lines[0].trimEnd().substring(0, MAX_SELECTED_TEXT_DISPLAY) : '';
+      // Use full first line from buffer for better context identification
+      let firstLine = '';
+      if (c.startRow != null && xterm) {
+        const bufLine = xterm.buffer.active.getLine(c.startRow);
+        if (bufLine) firstLine = bufLine.translateToString(true).trim().substring(0, MAX_SELECTED_TEXT_DISPLAY);
+      }
+      if (!firstLine && lines.length > 0) {
+        firstLine = lines[0].trimEnd().substring(0, MAX_SELECTED_TEXT_DISPLAY);
+      }
       const more = lines.length > 1 ? ` +${lines.length - 1} lines` : '';
       const ref = firstLine ? `[Re: "${firstLine}"${more}] ` : '';
       parts.push(`${ref}${c.comment}`);
