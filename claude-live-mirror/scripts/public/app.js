@@ -611,6 +611,7 @@
     renderCommentOverlays();
     updateBadge();
     if (xterm) xterm.clearSelection();
+    messageInput.focus();
   }
 
   function showToast(message) {
