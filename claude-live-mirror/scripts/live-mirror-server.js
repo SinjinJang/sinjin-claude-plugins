@@ -11,6 +11,7 @@ const START_PORT = 3456;
 const MAX_PORT_SCAN = 100;
 const POLL_TIMEOUT_MS = 120_000;
 const MAX_BODY_BYTES = 1 * 1024 * 1024; // 1 MB
+const MAX_FILE_READ_BYTES = 2 * 1024 * 1024; // 2 MB
 const MAX_SELECTED_TEXT = 80;
 const CLEANUP_EXIT_DELAY_MS = 100;
 const SIGINT_FORCE_CLEANUP_MS = 3000;
@@ -321,6 +322,42 @@ const httpServer = http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ success: true }));
     setTimeout(() => cleanup(0), CLEANUP_EXIT_DELAY_MS);
+    return;
+  }
+
+  // File viewer endpoint
+  if (req.method === 'GET' && pathname === '/api/file') {
+    const url = new URL(req.url, 'http://localhost');
+    let filePath = url.searchParams.get('path');
+    if (!filePath) {
+      res.writeHead(400, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Missing path parameter' }));
+      return;
+    }
+    if (filePath.startsWith('~/')) {
+      filePath = path.join(os.homedir(), filePath.slice(2));
+    }
+    const resolved = path.resolve(process.cwd(), filePath);
+    try {
+      const stat = fs.statSync(resolved);
+      if (!stat.isFile()) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Not a file' }));
+        return;
+      }
+      if (stat.size > MAX_FILE_READ_BYTES) {
+        res.writeHead(413, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'File too large (>2MB)' }));
+        return;
+      }
+      const content = fs.readFileSync(resolved, 'utf-8');
+      const relativePath = path.relative(process.cwd(), resolved);
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ path: resolved, relativePath, content }));
+    } catch {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'File not found' }));
+    }
     return;
   }
 

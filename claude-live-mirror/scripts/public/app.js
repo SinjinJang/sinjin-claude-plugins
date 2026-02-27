@@ -533,6 +533,65 @@
       gutterDebounce = setTimeout(renderCommentOverlays, 100);
       updateScrollBottomBtn();
     });
+
+    // ── File path link provider ──
+    // Pass 1: paths with directory separators (src/file.ts, ./app.js:42, /home/user/file.py:10:5)
+    var DIR_PATH_RE = /((?:~\/|\.{1,2}\/|\/)?(?:[\w@.+-]+\/)+[\w@.+-]+\.[\w]{1,10})(?::(\d+))?(?::(\d+))?/g;
+    // Pass 2: standalone filenames with known extensions (README.md, package.json, app.ts:42)
+    var KNOWN_EXTS = 'ts|tsx|js|jsx|mjs|cjs|py|rb|rs|go|java|json|yaml|yml|toml|md|sh|css|scss|html|xml|vue|svelte|sql|c|h|cpp|hpp';
+    var STANDALONE_RE = new RegExp('(?:^|[\\s\'"(,:`])([\\w@.-]+\\.(?:' + KNOWN_EXTS + '))(?::(\\d+))?(?::(\\d+))?', 'gi');
+
+    function openFileLink(fp, ln) {
+      var params = new URLSearchParams({ path: fp });
+      if (ln > 0) params.set('line', String(ln));
+      window.open('/viewer.html?' + params.toString(), '_blank');
+    }
+
+    xterm.registerLinkProvider({
+      provideLinks: function(y, callback) {
+        var line = xterm.buffer.active.getLine(y - 1);
+        if (!line) { callback(undefined); return; }
+        var text = line.translateToString(true);
+        var links = [];
+        var taken = [];
+        var m;
+
+        // Pass 1: directory paths
+        DIR_PATH_RE.lastIndex = 0;
+        while ((m = DIR_PATH_RE.exec(text)) !== null) {
+          var fp = m[1], ln = m[2] ? parseInt(m[2], 10) : 0;
+          var prefStart = Math.max(0, m.index - 10);
+          if (/\w+:\/?$/.test(text.substring(prefStart, m.index))) continue;
+          if (fp.length < 3) continue;
+          taken.push([m.index, m.index + m[0].length]);
+          links.push({
+            range: { start: { x: m.index + 1, y: y }, end: { x: m.index + m[0].length, y: y } },
+            text: m[0],
+            decorations: { pointerCursor: true, underline: true },
+            activate: (function(f, l) { return function() { openFileLink(f, l); }; })(fp, ln),
+          });
+        }
+
+        // Pass 2: standalone filenames
+        STANDALONE_RE.lastIndex = 0;
+        while ((m = STANDALONE_RE.exec(text)) !== null) {
+          var pathIdx = m.index + m[0].indexOf(m[1]);
+          var fullLen = m[0].length - m[0].indexOf(m[1]);
+          // Skip if overlapping with a directory path link
+          var overlap = taken.some(function(r) { return pathIdx < r[1] && (pathIdx + fullLen) > r[0]; });
+          if (overlap) continue;
+          var fp2 = m[1], ln2 = m[2] ? parseInt(m[2], 10) : 0;
+          links.push({
+            range: { start: { x: pathIdx + 1, y: y }, end: { x: pathIdx + fullLen, y: y } },
+            text: m[1],
+            decorations: { pointerCursor: true, underline: true },
+            activate: (function(f, l) { return function() { openFileLink(f, l); }; })(fp2, ln2),
+          });
+        }
+
+        callback(links.length > 0 ? links : undefined);
+      },
+    });
   }
 
   // ── Badge + inline comment updates ──
@@ -542,11 +601,11 @@
     if (pending === 0 && sent === 0) {
       commentBadge.textContent = '';
     } else if (pending > 0 && sent > 0) {
-      commentBadge.textContent = `${pending} pending / ${sent} sent`;
+      commentBadge.textContent = `${pending} pending / ${sent} submitted`;
     } else if (pending > 0) {
       commentBadge.textContent = `${pending} pending`;
     } else {
-      commentBadge.textContent = `${sent} sent`;
+      commentBadge.textContent = `${sent} submitted`;
     }
   }
 
@@ -699,7 +758,7 @@
     }
     renderCommentOverlays();
     updateBadge();
-    showToast(`Sent: ${resultParts.join(' + ')}`);
+    showToast(`Submitted: ${resultParts.join(' + ')}`);
   }
 
   async function done() {
