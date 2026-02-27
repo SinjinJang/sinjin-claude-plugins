@@ -14,7 +14,7 @@
 
 ```bash
 # 1. Marketplace 등록
-claude plugin marketplace add https://github.com/SinjinJang/sinjin-plugins
+claude plugin marketplace add https://github.com/SinjinJang/sinjin-claude-plugins
 
 
 # 2. 원하는 플러그인 설치
