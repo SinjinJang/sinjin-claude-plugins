@@ -17,6 +17,7 @@
   let editingCommentId = null;
   let xterm = null;
   let fitAddon = null;
+  let serverCols = null;
   const knownBatchIds = new Set();
 
   // ── Settings ──
@@ -44,7 +45,7 @@
     xterm.options.fontSize = s.fontSize;
     xterm.options.lineHeight = s.lineHeight;
     xterm.options.scrollback = s.scrollback;
-    if (fitAddon) fitAddon.fit();
+    fitTerminal();
     renderCommentOverlays();
   }
 
@@ -88,6 +89,15 @@
   let gutterDragging = false;
   let gutterAnchorRow = null;
 
+  // Fit terminal to container but constrain cols to server PTY width
+  function fitTerminal() {
+    if (!fitAddon || !xterm) return;
+    fitAddon.fit();
+    if (serverCols !== null && xterm.cols !== serverCols) {
+      xterm.resize(serverCols, xterm.rows);
+    }
+  }
+
   function initXterm() {
     xterm = new window.Terminal({
       theme: {
@@ -110,14 +120,14 @@
 
     xtermContainer.style.display = 'block';
     xterm.open(xtermContainer);
-    fitAddon.fit();
+    fitTerminal();
 
     window.addEventListener('resize', () => {
-      if (fitAddon) fitAddon.fit();
+      fitTerminal();
       renderCommentOverlays();
     });
     new ResizeObserver(() => {
-      if (fitAddon) fitAddon.fit();
+      fitTerminal();
       renderCommentOverlays();
     }).observe(terminalPanel);
 
@@ -827,7 +837,8 @@
         try {
           const msg = JSON.parse(e.data);
           if (msg.type === 'shutdown') { handleShutdown(); return; }
-          if (msg.type === 'resize' && xterm && fitAddon) {
+          if (msg.type === 'resize' && xterm) {
+            serverCols = msg.cols;
             xterm.resize(msg.cols, msg.rows);
           }
         } catch { /* ignore malformed WebSocket message */ }
