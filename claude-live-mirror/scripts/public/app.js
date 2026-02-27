@@ -638,11 +638,24 @@
     const parts = [];
     for (const c of comments) {
       const lines = c.selectedText ? c.selectedText.split('\n').filter(l => l.trim()) : [];
-      // Use full first line from buffer for better context identification
+      // Use full first line from buffer with <QUOTE> tags for selected portion
       let firstLine = '';
       if (c.startRow != null && xterm) {
         const bufLine = xterm.buffer.active.getLine(c.startRow);
-        if (bufLine) firstLine = bufLine.translateToString(true).trim().substring(0, MAX_SELECTED_TEXT_DISPLAY);
+        if (bufLine) {
+          const fullLine = bufLine.translateToString(true).trim();
+          const selFirst = lines.length > 0 ? lines[0].trim() : '';
+          const idx = selFirst ? fullLine.indexOf(selFirst) : -1;
+          if (idx >= 0 && selFirst !== fullLine) {
+            // Wrap selected portion with <QUOTE> tags; omit closing tag if multi-line
+            const before = fullLine.substring(0, idx);
+            const after = lines.length > 1 ? '' : fullLine.substring(idx + selFirst.length);
+            const closeTag = lines.length > 1 ? '' : '</QUOTE>';
+            firstLine = (before + '<QUOTE>' + selFirst + closeTag + after).substring(0, MAX_SELECTED_TEXT_DISPLAY + 30);
+          } else {
+            firstLine = fullLine.substring(0, MAX_SELECTED_TEXT_DISPLAY);
+          }
+        }
       }
       if (!firstLine && lines.length > 0) {
         firstLine = lines[0].trimEnd().substring(0, MAX_SELECTED_TEXT_DISPLAY);
