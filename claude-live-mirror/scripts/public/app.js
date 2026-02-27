@@ -66,7 +66,6 @@
   const commentBadge = document.getElementById('commentBadge');
   const toast = document.getElementById('toast');
   const messageInput = document.getElementById('messageInput');
-  const sendBtn = document.getElementById('sendBtn');
   const sendSubmitBtn = document.getElementById('sendSubmitBtn');
   const wsStatus = document.getElementById('wsStatus');
   const scrollBottomBtn = document.getElementById('scrollBottomBtn');
@@ -730,7 +729,6 @@
   });
 
   doneBtn.addEventListener('click', done);
-  sendBtn.addEventListener('click', () => sendAll(false));
   sendSubmitBtn.addEventListener('click', () => sendAll(true));
 
   messageInput.addEventListener('input', () => {
@@ -739,7 +737,7 @@
   });
 
   messageInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendAll(true);
     }

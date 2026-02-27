@@ -570,7 +570,7 @@ kbd {
   color: #555;
 }
 
-.btn-send {
+.btn-send-submit {
   padding: 5px 14px;
   border-radius: 5px;
   font-size: 11px;
@@ -578,15 +578,12 @@ kbd {
   cursor: pointer;
   font-family: inherit;
   border: none;
-  background: #9ece6a;
+  background: #7aa2f7;
   color: #0a0a0a;
 }
 
-.btn-send:hover { background: #b5e88a; }
-.btn-send:disabled { opacity: 0.3; cursor: default; }
-
-.btn-send-submit { background: #7aa2f7; }
 .btn-send-submit:hover { background: #89b4fa; }
+.btn-send-submit:disabled { opacity: 0.3; cursor: default; }
 
 /* xterm.js container */
 #xtermContainer {
