@@ -682,6 +682,7 @@
     }
     if (hasMessage) {
       messageInput.value = '';
+      messageInput.style.height = '';
       resultParts.push('message');
     }
     renderCommentOverlays();
@@ -718,6 +719,11 @@
   doneBtn.addEventListener('click', done);
   sendBtn.addEventListener('click', () => sendAll(false));
   sendSubmitBtn.addEventListener('click', () => sendAll(true));
+
+  messageInput.addEventListener('input', () => {
+    messageInput.style.height = 'auto';
+    messageInput.style.height = messageInput.scrollHeight + 'px';
+  });
 
   messageInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
