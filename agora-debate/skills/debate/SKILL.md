@@ -479,7 +479,7 @@ questions:
 
 ### 새 토론 모드 → 새 파일 생성
 
-파일명: `토론결과_YYYYMMDD_[토픽요약].md`
+파일명: `Agora-[토픽요약].md`
 - 토픽요약: 토론 주제를 2~4단어로 압축, **띄어쓰기 없이** 붙여 씀 (예: "AI도입장단점", "재택근무확대", "MVP계획")
 
 Write 도구로 파일 생성:
@@ -544,6 +544,6 @@ Write 도구로 파일 생성:
 
 ```
 /agora-debate:debate topic="AI 도입의 장단점"
-/agora-debate:debate result="토론결과_20260205_MVP계획.md"
+/agora-debate:debate result="Agora-MVP계획.md"
 /agora-debate:debate
 ```
