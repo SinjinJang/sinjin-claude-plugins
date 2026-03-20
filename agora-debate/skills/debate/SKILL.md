@@ -1,7 +1,7 @@
 ---
 name: debate
 description: 주제 기반 다중 에이전트 토론 시뮬레이션을 실행합니다 (후속 토론 포함). Use when the user asks to "run a debate", "simulate a discussion", "토론 시뮬레이션", "다양한 관점으로 논의", or wants multi-agent debate on a topic. Supports topic argument and result file path for follow-up debates. Do NOT use for simple opinion questions, pros/cons lists, persuasive writing, or debate speech preparation.
-compatibility: Requires Claude Code with Task (subagent) and AskUserQuestion tool support.
+compatibility: Requires Claude Code with Agent (subagent) and AskUserQuestion tool support.
 metadata:
   author: sjjang
   version: 0.2.0
@@ -243,11 +243,11 @@ personality → 한글명으로 자동 변환:
 
 ### Phase 1: 독립 리서치 (병렬 실행)
 
-토론자를 Task 도구로 **병렬 실행**하여 각자 독립적으로 주제를 조사합니다.
+토론자를 Agent 도구로 **병렬 실행**하여 각자 독립적으로 주제를 조사합니다.
 
-#### Task 호출 사양
+#### Agent 호출 사양
 
-각 토론자마다 Task 도구를 호출합니다:
+각 토론자마다 Agent 도구를 호출합니다:
 
 | 파라미터 | 값 |
 |---------|---|
@@ -256,7 +256,7 @@ personality → 한글명으로 자동 변환:
 | **prompt** | 아래 리서치 프롬프트 템플릿 |
 
 **⚡ 병렬 호출 규칙:**
-- **5명 이하**: 모든 토론자의 Task를 단일 메시지에서 동시에 호출
+- **5명 이하**: 모든 토론자의 Agent를 단일 메시지에서 동시에 호출
 - **6명 이상**: **4명씩 배치**로 나누어 호출 (예: 7명 = 4명 → 3명, 순차적으로 두 번 호출)
 
 #### 리서치 프롬프트 템플릿
@@ -296,7 +296,7 @@ personality → 한글명으로 자동 변환:
 
 모든 서브에이전트 완료 후:
 1. 각 토론자의 리서치 결과와 초기 입장을 수집합니다
-2. **각 토론자의 에이전트 ID를 기록합니다** — Task 도구의 반환 결과에 포함된 `agentId`를 추출하여 저장 (Phase 2의 resume 파라미터에 사용)
+2. **각 토론자의 리서치 결과 전문을 기록합니다** — Phase 2의 라운드 프롬프트에 해당 토론자의 리서치 요약을 포함하기 위해 사용
 3. 사용자에게 요약을 출력합니다:
 
 ```
@@ -307,7 +307,7 @@ personality → 한글명으로 자동 변환:
 {이모지} **{한글명}**: {초기 입장 핵심 1문장}
 ```
 
-### Phase 2: 토론 라운드 (resume 기반)
+### Phase 2: 토론 라운드
 
 #### 중재자 오프닝
 
@@ -343,21 +343,32 @@ personality → 한글명으로 자동 변환:
 "제{N}라운드를 시작하겠습니다. {라운드 논점 또는 방향}"
 ```
 
-**2) 토론자 발언 수집 (병렬 resume)**
+**2) 토론자 발언 수집 (병렬 실행)**
 
-모든 토론자를 Task 도구로 **동시에 resume**합니다:
+모든 토론자를 Agent 도구로 **동시에 실행**합니다 (매 라운드 새 인스턴스 생성):
 
 | 파라미터 | 값 |
 |---------|---|
 | **subagent_type** | `"debater"` |
-| **resume** | Phase 1에서 기록한 해당 토론자의 에이전트 ID |
 | **description** | `"{한글명} 라운드 {N}"` |
-| **prompt** | 아래 라운드별 프롬프트 |
+| **prompt** | 아래 라운드별 프롬프트 (캐릭터 설정 + 리서치 요약 포함) |
 
 ##### 라운드 1 프롬프트
 
 ```
 [토론] 라운드 1
+
+## 당신의 역할
+- **성격**: {한글명} {이모지}
+- **핵심 특성**: {personalities.md에서 해당 성격의 핵심 특성}
+- **발언 스타일**: {personalities.md에서 해당 성격의 발언 스타일}
+- **관점**: {personalities.md에서 해당 성격의 관점}
+
+## 토론 주제
+{topic}
+
+## 당신의 리서치 결과 요약
+{Phase 1에서 해당 토론자가 반환한 리서치 결과의 핵심 요약 3~5줄}
 
 ## 다른 토론자들의 초기 입장 (중재자 요약)
 - {한글명A}: {초기 입장 2~3줄 요약}
@@ -374,6 +385,18 @@ personality → 한글명으로 자동 변환:
 ```
 [토론] 라운드 {N}
 
+## 당신의 역할
+- **성격**: {한글명} {이모지}
+- **핵심 특성**: {personalities.md에서 해당 성격의 핵심 특성}
+- **발언 스타일**: {personalities.md에서 해당 성격의 발언 스타일}
+- **관점**: {personalities.md에서 해당 성격의 관점}
+
+## 토론 주제
+{topic}
+
+## 당신의 리서치 결과 요약
+{Phase 1에서 해당 토론자가 반환한 리서치 결과의 핵심 요약 3~5줄}
+
 ## 라운드 {N-1} 요약 (중재자)
 - {한글명A}: {핵심 주장 요약}
 - {한글명B}: {핵심 주장 요약}
@@ -389,8 +412,8 @@ personality → 한글명으로 자동 변환:
 ```
 
 **⚡ 병렬 호출 규칙:**
-- **5명 이하**: 모든 토론자의 resume Task를 단일 메시지에서 동시에 호출
-- **6명 이상**: **4명씩 배치**로 나누어 resume 호출 (예: 7명 = 4명 → 3명)
+- **5명 이하**: 모든 토론자의 Agent를 단일 메시지에서 동시에 호출
+- **6명 이상**: **4명씩 배치**로 나누어 호출 (예: 7명 = 4명 → 3명)
 
 **3) 발언 출력**
 
@@ -418,7 +441,7 @@ personality → 한글명으로 자동 변환:
 • 다음 방향: ...
 ```
 
-이 요약은 다음 라운드의 resume 프롬프트에 포함됩니다.
+이 요약은 다음 라운드의 Agent 프롬프트에 포함됩니다.
 
 #### 서브에이전트 실패 처리
 토론자 서브에이전트 실행이 실패할 경우 (타임아웃, 오류 등):
